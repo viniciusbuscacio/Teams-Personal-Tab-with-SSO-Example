@@ -2,6 +2,12 @@
 
 [Este documento está disponível em português clicando aqui](README-PTBR.md)
 
+> **Disclaimer:** This is an educational example, provided **"AS IS"**, without
+> warranties or guarantees of support, maintenance, security, or fitness for
+> production use. Use it at your own risk. To the extent permitted by applicable
+> law, the authors and copyright holders disclaim liability as stated in the
+> [MIT License](LICENSE).
+
 An educational example with **two simple Bootstrap screens**: sign-in and an
 authenticated profile with **Sign out of the app**. The same website and API work
 in the browser and as a Teams personal tab.
@@ -256,7 +262,18 @@ in your chosen tenant before distributing.
   retrieved on September 30, 2026, and preserved in `scripts\schemas\MicrosoftTeams.schema.json`
   for offline validation; a third-party Microsoft artifact, not authored by this project.
 
-Third-party libraries and the schema retain their original rights and terms.
-A publication license for the new code **has not yet been chosen**;
-this project does not grant its own license by implication. Review licensing
-and attribution before publishing a public repository.
+## License
+
+The original code and documentation in this repository are licensed under the
+[MIT License](LICENSE). Copyright (c) 2026 Vinicius Buscacio.
+
+You may use, copy, modify, and distribute the software, including commercially,
+subject to the license's notice requirements. The software is provided **"AS IS"**,
+without warranty, with the limitation of liability stated in the license.
+You are responsible for evaluating, configuring, securing, and testing any
+deployment in your own environment.
+
+Third-party libraries, the Microsoft Teams manifest schema, and third-party
+trademarks and content shown in screenshots retain their respective rights
+and terms. The MIT License does not replace those terms or imply endorsement
+by Microsoft or any other third party.

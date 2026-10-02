@@ -1,5 +1,11 @@
 # Teams Personal Tab with SSO Example
 
+> **Aviso de responsabilidade:** Este é um exemplo educacional, fornecido
+> **"AS IS" (no estado em que se encontra)**, sem garantias de suporte, manutenção,
+> segurança ou adequação para uso em produção. Use por sua conta e risco.
+> Na medida permitida pela legislação aplicável, os autores e titulares dos
+> direitos autorais excluem sua responsabilidade conforme a [licença MIT](LICENSE).
+
 Exemplo educacional com **duas telas simples em Bootstrap**: login e perfil
 autenticado com **Sair do aplicativo**. O mesmo site e a mesma API funcionam
 no navegador e como aba pessoal do Teams.
@@ -255,7 +261,18 @@ manual acima no tenant escolhido antes de distribuir.
   obtido em 30/09/2026, preservado em `scripts\schemas\MicrosoftTeams.schema.json`
   para validação offline; artefato de terceiros da Microsoft, não de autoria deste projeto.
 
-Bibliotecas e schema de terceiros conservam seus direitos e termos
-originais. A licença de publicação do código novo ainda **não foi escolhida**;
-este projeto não concede uma licença própria por inferência. Revise
-licenciamento e atribuições antes de publicar um repositório público.
+## Licença
+
+O código e a documentação originais deste repositório são licenciados sob a
+[licença MIT](LICENSE). Copyright (c) 2026 Vinicius Buscacio.
+
+Você pode usar, copiar, modificar e distribuir o software, inclusive para fins
+comerciais, desde que preserve os avisos exigidos pela licença. O software é
+fornecido **"AS IS" (no estado em que se encontra)**, sem garantia, com a limitação
+de responsabilidade prevista na licença. Cabe a você avaliar, configurar,
+proteger e testar qualquer implantação no seu ambiente.
+
+Bibliotecas de terceiros, o schema de manifesto do Microsoft Teams e marcas e
+conteúdos de terceiros exibidos nas capturas de tela conservam seus respectivos
+direitos e termos. A licença MIT não substitui esses termos nem implica endosso
+da Microsoft ou de qualquer outro terceiro.
