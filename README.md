@@ -1,110 +1,112 @@
 # Teams Personal Tab with SSO Example
 
-Exemplo educacional com **duas telas simples em Bootstrap**: login e perfil
-autenticado com **Sair do aplicativo**. O mesmo site e a mesma API funcionam
-no navegador e como aba pessoal do Teams.
+[Este documento está disponível em português clicando aqui](README-PTBR.md)
 
-Inspirado no [Personal Tab SSO Quickstart da Microsoft](https://github.com/OfficeDev/Microsoft-Teams-Samples/tree/main/samples/TeamsJS/tab-personal-sso-quickstart/ts).
-Esta implementação foi escrita para este exemplo; não é uma cópia do
-quickstart nem um produto endossado pela Microsoft. Não utiliza bot, Graph,
-OBO, banco de dados, IA, client secret ou captura de senhas.
+An educational example with **two simple Bootstrap screens**: sign-in and an
+authenticated profile with **Sign out of the app**. The same website and API work
+in the browser and as a Teams personal tab.
 
-## Como funciona
+Inspired by Microsoft's [Personal Tab SSO Quickstart](https://github.com/OfficeDev/Microsoft-Teams-Samples/tree/main/samples/TeamsJS/tab-personal-sso-quickstart/ts).
+This implementation was written for this example; it is neither a copy of the
+quickstart nor a Microsoft-endorsed product. It does not use bots, Graph,
+OBO, a database, AI, client secrets, or password collection.
 
-| Contexto | Entrada | Saída |
+## How it works
+
+| Context | Sign-in | Sign-out |
 | --- | --- | --- |
-| Navegador | **Entrar com Microsoft** abre o Entra ID oficial em popup; MSAL usa authorization code com PKCE. | Limpa perfil e cache MSAL local, sem chamar logout global. |
-| Teams | Inicializa TeamsJS e tenta `getAuthToken({ silent: true })`. O botão permite nova tentativa com interação do host quando necessária. | Limpa o perfil do exemplo; não encerra a sessão do Teams nem remove seu cache SSO. |
+| Browser | **Sign in with Microsoft** opens the official Entra ID sign-in page in a popup; MSAL uses the authorization code flow with PKCE. | Clears the profile and local MSAL cache without triggering a global sign-out. |
+| Teams | Initializes TeamsJS and tries `getAuthToken({ silent: true })`. The button allows another attempt with host interaction when needed. | Clears the example's profile; does not end the Teams session or remove its SSO cache. |
 
-O frontend envia o access token apenas no cabeçalho `Authorization: Bearer`
-para `GET /api/me`. O servidor valida assinatura RS256 via JWKS, issuer v2,
-tenant, audiência exata da API, validade temporal, `oid`, cliente autorizado
-e escopo delegado `access_as_user`. Tokens Graph e tokens app-only são
-recusados. Nome e login são informativos; a identidade usada na autorização
-é a combinação de `tid` e `oid`.
-A tela só aparece autenticada após uma resposta válida da API.
+The frontend sends the access token only in the `Authorization: Bearer` header
+to `GET /api/me`. The server validates the RS256 signature through JWKS, v2 issuer,
+tenant, exact API audience, token validity period, `oid`, authorized client,
+and delegated `access_as_user` scope. Graph tokens and app-only tokens are
+rejected. The name and sign-in identifier are for display; the identity used
+for authorization is the combination of `tid` and `oid`.
+The authenticated screen appears only after a valid API response.
 
-Tokens ficam em memória, não em URLs, logs ou banco. Somente um marcador
-booleano de saída local é gravado em `sessionStorage`; ele impede o login
-automático imediato, inclusive ao recarregar a mesma aba. Uma nova aba ou sessão
-pode usar SSO novamente. Isso **não revoga tokens**, não encerra a sessão
-Microsoft e não substitui uma política de logout corporativo. A nova entrada
-explícita pode reaproveitar a sessão Microsoft sem pedir senha.
+Tokens stay in memory, never in URLs, logs, or a database. Only a boolean
+local sign-out marker is written to `sessionStorage`; it prevents immediate
+automatic sign-in, including when reloading the same tab. A new tab or session
+can use SSO again. This **does not revoke tokens**, end the Microsoft session,
+or replace a corporate sign-out policy. A subsequent explicit sign-in may reuse
+the Microsoft session without prompting for a password.
 
-Tela inicial no navegador, com entrada pela conta corporativa Microsoft:
+Initial browser screen, with sign-in using a Microsoft work account:
 
-![Tela inicial do aplicativo no navegador, com o botão Sign in with Microsoft.](docs/images/browser-sign-in.png)
+![Initial browser screen with the Sign in with Microsoft button.](docs/images/browser-sign-in.png)
 
-## Requisitos
+## Requirements
 
-- Node.js **24 LTS**, npm e um navegador atual.
-- Para autenticação real: tenant Microsoft Entra ID, usuário desse tenant,
-  permissão para registrar/configurar um aplicativo e consentimento conforme
-  a política da organização.
-- Para Teams: HTTPS com certificado confiável, um domínio configurável
-  (pode ser um túnel de desenvolvimento) e permissão para carregar apps
-  personalizados. Não é necessário hospedar no Azure.
+- Node.js **24 LTS**, npm, and a current browser.
+- For real authentication: a Microsoft Entra ID tenant, a user in that tenant,
+  permission to register/configure an application, and consent according to
+  the organization's policy.
+- For Teams: HTTPS with a trusted certificate, a configurable domain
+  (a development tunnel is fine), and permission to upload custom apps.
+  Azure hosting is not required.
 
-`npm test` e `npm run build` **não precisam de tenant, túnel ou configuração real**.
-Os testes utilizam IDs e chaves sintéticos.
+`npm test` and `npm run build` **do not require a tenant, tunnel, or real configuration**.
+Tests use synthetic IDs and keys.
 
-## 1. Registrar um único aplicativo no Entra ID
+## 1. Register a single application in Entra ID
 
-Defina sua origem HTTPS, por exemplo `https://tab.example.com`, sem caminho,
-barra final ou porta não padrão. Os exemplos abaixo são placeholders.
+Choose your HTTPS origin, such as `https://tab.example.com`, with no path,
+trailing slash, or non-default port. The examples below are placeholders.
 
-1. No [Microsoft Entra admin center](https://entra.microsoft.com), abra
-   **App registrations > New registration**. Escolha **Accounts in this
-   organizational directory only (Single tenant)**. Anote **Directory
-   (tenant) ID** e **Application (client) ID**.
-2. Em **Manifest**, configure `api.requestedAccessTokenVersion` como `2`.
-   Preserve as demais propriedades do registro.
-3. Em **Authentication > Add a platform > Single-page application (SPA)**,
-   registre exatamente `https://tab.example.com/auth/callback.html`.
-   Não selecione Web, não habilite implicit grant, não habilite public client
-   flows e não crie segredo/certificado para este exemplo.
-4. Em **Expose an API**, configure o Application ID URI como
+1. In the [Microsoft Entra admin center](https://entra.microsoft.com), open
+   **App registrations > New registration**. Choose **Accounts in this
+   organizational directory only (Single tenant)**. Note the **Directory
+   (tenant) ID** and **Application (client) ID**.
+2. Under **Manifest**, set `api.requestedAccessTokenVersion` to `2`.
+   Preserve the registration's other properties.
+3. Under **Authentication > Add a platform > Single-page application (SPA)**,
+   register exactly `https://tab.example.com/auth/callback.html`.
+   Do not select Web, enable implicit grant, enable public client flows,
+   or create a secret/certificate for this example.
+4. Under **Expose an API**, set the Application ID URI to
    `api://tab.example.com/<APPLICATION_CLIENT_ID>`.
-   O domínio deve ser o mesmo que hospeda a aba. Se uma política de
-   identificadores/consentimento impedir a configuração, solicite apoio do
-   administrador; não relaxe a validação da API.
-5. Adicione e habilite o escopo **`access_as_user`**. Sugestão de nome de
-   consentimento: "Acessar o exemplo como usuário"; descrição: "Permite
-   consultar o próprio nome e identificador de entrada neste exemplo".
-   Defina quem pode consentir conforme a política do tenant; se for
-   **Admins only**, o administrador precisa conceder consentimento.
-6. Em **API permissions > Add a permission > My APIs**, selecione este
-   próprio registro, **Delegated permissions > access_as_user**. Conceda
-   consentimento administrativo se exigido pela política. Remova a
-   permissão Graph `User.Read` criada por padrão se estiver presente:
-   o exemplo não chama Graph. MSAL pode solicitar os escopos padrão
-   de protocolo `openid`, `profile` e `offline_access`.
-7. Em **Expose an API > Authorized client applications**, adicione os
-   dois IDs oficiais abaixo e marque `access_as_user` para cada um:
+   The domain must match the one hosting the tab. If an identifier or consent
+   policy prevents this configuration, ask your administrator for help;
+   do not weaken API validation.
+5. Add and enable the **`access_as_user`** scope. Suggested consent display
+   name: "Access the example as a user"; description: "Allows users to view
+   their own name and sign-in identifier in this example".
+   Set who can consent according to the tenant's policy; if it is
+   **Admins only**, an administrator must grant consent.
+6. Under **API permissions > Add a permission > My APIs**, select this same
+   registration, then **Delegated permissions > access_as_user**. Grant
+   administrator consent if required by policy. Remove the default Graph
+   `User.Read` permission if present: the example does not call Graph.
+   MSAL may request the standard protocol scopes `openid`, `profile`,
+   and `offline_access`.
+7. Under **Expose an API > Authorized client applications**, add the two
+   official IDs below and select `access_as_user` for each:
 
-   | Cliente Teams | ID público oficial |
+   | Teams client | Official public ID |
    | --- | --- |
    | Desktop/mobile | `1fec8e78-bce4-4aaf-ab1b-5451cc387264` |
    | Web | `5e3ce6c0-2b1f-4285-8d4b-75ee78787346` |
 
-8. Se o token não incluir `preferred_username`, configure o optional claim
-   **`upn`** para **Access tokens**, se disponível em seu tenant. A API aceita
-   `preferred_username` ou `upn`; quando ambos estiverem ausentes, a tela informa
-   essa ausência em vez de inventar um e-mail. Claims de exibição não são
-   chaves de autorização.
+8. If the token does not include `preferred_username`, configure the optional
+   **`upn`** claim for **Access tokens**, if available in your tenant. The API
+   accepts `preferred_username` or `upn`; when both are missing, the screen
+   reports their absence instead of inventing an email address. Display claims
+   are not authorization keys.
 
-O navegador e a API usam o mesmo client ID, correspondente a um único registro;
-a audiência dos tokens v2 esperada pela API é esse **GUID**, não o URI `api://...`.
-O escopo solicitado é `api://tab.example.com/<APPLICATION_CLIENT_ID>/access_as_user`.
+The browser and API use the same client ID, corresponding to a single registration;
+the v2 token audience expected by the API is this **GUID**, not the `api://...` URI.
+The requested scope is `api://tab.example.com/<APPLICATION_CLIENT_ID>/access_as_user`.
 
-Visão geral do registro do aplicativo no Microsoft Entra ID, com os
-identificadores e o Application ID URI ocultos:
+Application registration overview in Microsoft Entra ID, with identifiers
+and the Application ID URI hidden:
 
-![Visão geral do App Registration no Microsoft Entra ID, com os IDs e o Application ID URI ocultos.](docs/images/entra-app-registration.png)
+![App Registration overview in Microsoft Entra ID, with IDs and the Application ID URI hidden.](docs/images/entra-app-registration.png)
 
-## 2. Configurar e executar localmente
+## 2. Configure and run locally
 
-Na pasta do projeto, usando PowerShell:
+In the project folder, using PowerShell:
 
 ```powershell
 npm install
@@ -112,7 +114,7 @@ Copy-Item sso-config.example.json sso-config.json
 Copy-Item teams-package.example.json teams-package.json
 ```
 
-Edite `sso-config.json` com os valores do seu registro:
+Edit `sso-config.json` with the values from your registration:
 
 ```json
 {
@@ -122,9 +124,9 @@ Edite `sso-config.json` com os valores do seu registro:
 }
 ```
 
-Em `teams-package.json`, informe o nome real do responsável e um **novo
-GUID para o aplicativo Teams**, distinto conceitualmente do registro Entra.
-Para gerar esse GUID, use `[guid]::NewGuid()`:
+In `teams-package.json`, enter the actual developer or organization name and a
+**new GUID for the Teams app**, conceptually separate from the Entra registration.
+To generate this GUID, use `[guid]::NewGuid()`:
 
 ```json
 {
@@ -133,9 +135,9 @@ Para gerar esse GUID, use `[guid]::NewGuid()`:
 }
 ```
 
-Os arquivos reais, builds e ZIPs são ignorados pelo Git. Placeholders
-deliberadamente **não passam** na validação de configuração.
-Não coloque segredos nesses arquivos.
+Actual configuration files, builds, and ZIPs are ignored by Git. Placeholders
+deliberately **fail** configuration validation.
+Do not put secrets in these files.
 
 ```powershell
 npm test
@@ -143,61 +145,59 @@ npm run build
 npm start
 ```
 
-O servidor escuta apenas `127.0.0.1:3000` por padrão. `PORT` e `HOST`
-podem ser definidos pelo ambiente quando a hospedagem exigir.
-`npm run dev` constrói a interface e reinicia o servidor ao alterar seus
-arquivos TypeScript; **reinicie esse comando para reconstruir alterações
-na interface**. Não é um servidor Vite com HMR.
+The server listens only on `127.0.0.1:3000` by default. `PORT` and `HOST`
+can be set through the environment when required by the hosting platform.
+`npm run dev` builds the interface and restarts the server when its TypeScript
+files change; **restart this command to rebuild interface changes**.
+It is not a Vite server with HMR.
 
-O login requer a origem HTTPS configurada, mesmo no navegador. Para testar
-com Teams, configure por sua conta um túnel HTTPS que encaminhe para
-`http://127.0.0.1:3000`; nenhum comando deste projeto cria recursos ou túneis.
-Evite um proxy que intercepte autenticação, injete scripts ou modifique
-cabeçalhos. Não exponha a raiz do projeto: somente o Express e `dist`.
+Sign-in requires the configured HTTPS origin, even in the browser. To test
+with Teams, configure an HTTPS tunnel yourself that forwards to
+`http://127.0.0.1:3000`; no command in this project creates resources or tunnels.
+Avoid a proxy that intercepts authentication, injects scripts, or modifies
+headers. Do not expose the project root: serve only through Express and `dist`.
 
-Se o domínio mudar, atualize **juntos** `origin`, redirect URI SPA, Application
-ID URI, escopo/permissão no Entra e pacote Teams. Reinicie o servidor e
-importe novamente o pacote. Conteúdo e API permanecem na mesma origem;
-não existe CORS aberto nem modo que ignore autenticação.
+If the domain changes, update `origin`, the SPA redirect URI, Application ID URI,
+Entra scope/permission, and Teams package **together**. Restart the server and
+import the package again. Content and API remain on the same origin;
+there is no open CORS configuration or authentication bypass mode.
 
-## 3. Gerar e importar o aplicativo Teams
+## 3. Generate and import the Teams app
 
 ```powershell
 npm run teams:package
 ```
 
-O comando cria `appPackage\teams-personal-tab.zip`, com `manifest.json`,
-`color.png` (192 x 192) e `outline.png` (32 x 32) na raiz. Os ícones
-geométricos são gerados por este projeto, sem marca Microsoft.
-O gerador valida o manifesto **1.23** com uma cópia local do schema oficial,
-confere dimensões e recusa sobrescrever um ZIP existente. Para outra saída:
+The command creates `appPackage\teams-personal-tab.zip`, containing `manifest.json`,
+`color.png` (192 x 192), and `outline.png` (32 x 32) at the root. The geometric
+icons are generated by this project and contain no Microsoft branding.
+The generator validates the **1.23** manifest against a local copy of the official
+schema, checks dimensions, and refuses to overwrite an existing ZIP. For another output:
 
 ```powershell
 npm run teams:package -- sso-config.json teams-package.json appPackage\personal-tab-v2.zip
 ```
 
-O manifesto usa `staticTabs` com escopo `personal`, `webApplicationInfo`
-do registro Entra e `validDomains` com somente o domínio configurado.
-O parâmetro `?host=teams` solicita a inicialização do SDK, **não autentica**.
-Frames e hosts nativos também são reconhecidos; uma falha do SDK não aciona
-o login de navegador silenciosamente. Abra a URL sem esse parâmetro para
-testar no navegador normal.
+The manifest uses `staticTabs` with the `personal` scope, `webApplicationInfo`
+from the Entra registration, and `validDomains` containing only the configured domain.
+The `?host=teams` parameter requests SDK initialization; it **does not authenticate**.
+Frames and native hosts are also detected; an SDK failure does not silently trigger
+browser sign-in. Open the URL without this parameter to test in a regular browser.
 
-No Teams, use **Apps > Manage your apps > Upload an app > Upload a custom
-app** (rótulos podem variar) e selecione o ZIP. Se a opção não aparecer,
-o administrador precisa liberar upload/uso de apps personalizados conforme
-as políticas de gerenciamento, configuração e disponibilidade de apps.
-Validar o ZIP localmente não garante aprovação dessas políticas nem
-publicação no catálogo.
+In Teams, use **Apps > Manage your apps > Upload an app > Upload a custom
+app** (labels may vary) and select the ZIP. If the option does not appear,
+an administrator must allow custom app upload/use according to app management,
+setup, and availability policies. Local ZIP validation does not guarantee
+approval under those policies or publication in the catalog.
 
-Perfil autenticado no aplicativo instalado como aba pessoal do Teams:
+Authenticated profile in the app installed as a Teams personal tab:
 
-![Aplicativo Personal Tab SSO aberto no Teams, com o nome do usuário, o e-mail oculto e a confirmação de identidade pela API.](docs/images/teams-sso-profile.png)
+![Personal Tab SSO app open in Teams, showing the user's name, a hidden email address, and identity confirmation from the API.](docs/images/teams-sso-profile.png)
 
-Antes de distribuir, substitua as páginas de exemplo de suporte,
-privacidade e termos pelos contatos e textos adequados da organização.
+Before distributing, replace the example support, privacy, and terms pages
+with the appropriate contacts and text for your organization.
 
-## Validação e diagnóstico
+## Validation and troubleshooting
 
 ```powershell
 npm run typecheck
@@ -205,57 +205,58 @@ npm test
 npm run build
 ```
 
-Os testes cobrem assinatura com JWKS sintético, audiência/issuer/tenant,
-expiração, escopo delegado, clientes, API sem token, falhas de dependência,
-duas telas, logout local, resposta obsoleta, 401, popup e erros do Teams,
-validações de configuração, schema e conteúdo do ZIP. Não há linter configurado.
+Tests cover signatures with synthetic JWKS, audience/issuer/tenant,
+expiration, delegated scope, clients, API requests without a token, dependency
+failures, both screens, local sign-out, stale responses, 401s, popup and Teams
+errors, configuration validation, schema validation, and ZIP contents.
+No linter is configured.
 
-Teste real esperado, após configurar seu ambiente:
+Expected real-world checks after configuring your environment:
 
-1. Navegador: tela de login, popup oficial Microsoft, consentimento/MFA
-   quando exigidos, perfil confirmado pela API.
-2. Teams web, desktop e mobile: SSO usando a conta do host; se houver
-   interação necessária, use **Entrar com Microsoft**. Falhas persistentes
-   de consentimento/MFA podem exigir ação do administrador ou nova entrada
-   no próprio Teams; não há fallback de senha, Graph ou NAA.
-3. Ambos: **Sair do aplicativo** volta ao login; recarregar a mesma aba
-   não entra automaticamente. Clicar em entrar permite nova autenticação.
+1. Browser: sign-in screen, official Microsoft popup, consent/MFA when required,
+   and a profile confirmed by the API.
+2. Teams web, desktop, and mobile: SSO using the host account; if interaction
+   is required, select **Sign in with Microsoft**. Persistent consent/MFA failures
+   may require administrator action or signing in to Teams again;
+   there is no password, Graph, or NAA fallback.
+3. Both: **Sign out of the app** returns to the sign-in screen; reloading the
+   same tab does not sign in automatically. Selecting sign-in allows authentication again.
 
-| Sintoma | Verificação |
+| Symptom | What to check |
 | --- | --- |
-| `SSO_CONFIG_LOAD_FAILED` | Arquivo local, GUIDs, origem HTTPS exata e ausência de campos extras. |
-| `AUTH_ORIGIN` | Abra a origem configurada, não `localhost` ou outro domínio. |
-| `AUTH_TEAMS_INIT` / `AUTH_TEAMS_TIMEOUT` | Reabra no Teams; confira carregamento do SDK, CSP e rede do host. |
-| `AUTH_INTERACTION` / `AUTH_TEAMS_TOKEN` | Consentimento, clientes pré-autorizados, tenant da conta, escopo e `webApplicationInfo`. |
-| `AUTH_POPUP` | Permita popups; conclua entrada/consentimento/MFA sem fechar a janela. |
-| `AUTH_BACKEND_401` | Token v2, audiência GUID da API, tenant, escopo e relógio do servidor. O Teams pode devolver o mesmo token em cache na segunda tentativa. |
-| HTTP 503 | A API não conseguiu validar a identidade; confira acesso a `login.microsoftonline.com`/JWKS. Não aceite token sem assinatura. |
-| `AUTH_STORAGE` / `AUTH_CLEAR` | Permita armazenamento da sessão; se a limpeza falhar, feche a aba. |
-| `PACKAGE_FAILED` | Placeholders, nome do responsável (1 a 32 caracteres), caminhos/permissões ou ZIP já existente. |
+| `SSO_CONFIG_LOAD_FAILED` | Local file, GUIDs, exact HTTPS origin, and absence of extra fields. |
+| `AUTH_ORIGIN` | Open the configured origin, not `localhost` or another domain. |
+| `AUTH_TEAMS_INIT` / `AUTH_TEAMS_TIMEOUT` | Reopen in Teams; check SDK loading, CSP, and the host's network connection. |
+| `AUTH_INTERACTION` / `AUTH_TEAMS_TOKEN` | Consent, preauthorized clients, account tenant, scope, and `webApplicationInfo`. |
+| `AUTH_POPUP` | Allow popups; complete sign-in/consent/MFA without closing the window. |
+| `AUTH_BACKEND_401` | v2 token, API GUID audience, tenant, scope, and server clock. Teams may return the same cached token on the second attempt. |
+| HTTP 503 | The API could not validate the identity; check access to `login.microsoftonline.com`/JWKS. Do not accept unsigned tokens. |
+| `AUTH_STORAGE` / `AUTH_CLEAR` | Allow session storage; if clearing fails, close the tab. |
+| `PACKAGE_FAILED` | Placeholders, developer name (1 to 32 characters), paths/permissions, or an existing ZIP. |
 
-A CSP permite os hosts Teams documentados e o Entra para autenticação.
-A página `/auth/callback.html` é uma bridge MSAL separada, com
-`frame-ancestors 'self'`, sem COOP. Não configure o proxy para adicionar
-COOP nessa página nem `X-Frame-Options: DENY/SAMEORIGIN` na aba principal.
-Não habilite logs HTTP que gravem `Authorization`, códigos OAuth ou tokens.
+The CSP allows the documented Teams hosts and Entra for authentication.
+The `/auth/callback.html` page is a separate MSAL bridge with
+`frame-ancestors 'self'` and no COOP. Do not configure the proxy to add
+COOP to this page or `X-Frame-Options: DENY/SAMEORIGIN` to the main tab.
+Do not enable HTTP logs that record `Authorization`, OAuth codes, or tokens.
 
-**Limite das evidências:** testes locais usam mocks dos SDKs e chaves
-sintéticas; não comprovam login real, políticas corporativas, comportamento
-de popup ou compatibilidade de todos os clientes Teams. Execute a lista
-manual acima no tenant escolhido antes de distribuir.
+**Evidence limitations:** local tests use SDK mocks and synthetic keys;
+they do not prove real sign-in, corporate policy compliance, popup behavior,
+or compatibility with every Teams client. Run the manual checklist above
+in your chosen tenant before distributing.
 
-## Referências e direitos
+## References and rights
 
-- [Visão geral do SSO em abas](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-overview)
-- [Registro Entra e clientes Teams autorizados](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-register-aad)
-- [TeamsJS: obter e validar token](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-code)
+- [Tab SSO overview](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-overview)
+- [Entra registration and authorized Teams clients](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-register-aad)
+- [TeamsJS: obtain and validate a token](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/authentication/tab-sso-code)
 - [MSAL Browser v5: redirect bridge](https://learn.microsoft.com/en-us/entra/msal/javascript/browser/redirect-bridge)
-- [CSP e requisitos de abas](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/tab-requirements)
-- [Schema oficial do manifesto 1.23](https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json),
-  obtido em 30/09/2026, preservado em `scripts\schemas\MicrosoftTeams.schema.json`
-  para validação offline; artefato de terceiros da Microsoft, não de autoria deste projeto.
+- [CSP and tab requirements](https://learn.microsoft.com/en-us/microsoftteams/platform/tabs/how-to/tab-requirements)
+- [Official manifest schema 1.23](https://developer.microsoft.com/json-schemas/teams/v1.23/MicrosoftTeams.schema.json),
+  retrieved on September 30, 2026, and preserved in `scripts\schemas\MicrosoftTeams.schema.json`
+  for offline validation; a third-party Microsoft artifact, not authored by this project.
 
-Bibliotecas e schema de terceiros conservam seus direitos e termos
-originais. A licença de publicação do código novo ainda **não foi escolhida**;
-este projeto não concede uma licença própria por inferência. Revise
-licenciamento e atribuições antes de publicar um repositório público.
+Third-party libraries and the schema retain their original rights and terms.
+A publication license for the new code **has not yet been chosen**;
+this project does not grant its own license by implication. Review licensing
+and attribution before publishing a public repository.
