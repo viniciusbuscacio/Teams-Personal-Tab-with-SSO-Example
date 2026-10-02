@@ -1,5 +1,12 @@
 # Teams Personal Tab with SSO Example
 
+> **Projeto não oficial:** Este repositório é um projeto educacional independente.
+> Não é um repositório, produto ou exemplo oficial da Microsoft. A Microsoft não
+> endossa, patrocina, mantém nem oferece suporte técnico a este projeto.
+> As referências a produtos, SDKs, documentação e exemplos da Microsoft têm
+> finalidade de identificação e aprendizado e não implicam vínculo institucional
+> ou aprovação da Microsoft.
+
 > **Aviso de responsabilidade:** Este é um exemplo educacional, fornecido
 > **"AS IS" (no estado em que se encontra)**, sem garantias de suporte, manutenção,
 > segurança ou adequação para uso em produção. Use por sua conta e risco.

@@ -2,6 +2,13 @@
 
 [Este documento está disponível em português clicando aqui](README-PTBR.md)
 
+> **Unofficial project:** This repository is an independent educational project.
+> It is not an official Microsoft repository, product, or sample. Microsoft does
+> not endorse, sponsor, maintain, or provide technical support for this project.
+> References to Microsoft products, SDKs, documentation, and samples are for
+> identification and educational purposes and do not imply Microsoft affiliation
+> or approval.
+
 > **Disclaimer:** This is an educational example, provided **"AS IS"**, without
 > warranties or guarantees of support, maintenance, security, or fitness for
 > production use. Use it at your own risk. To the extent permitted by applicable
