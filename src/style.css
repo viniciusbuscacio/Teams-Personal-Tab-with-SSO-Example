@@ -1,0 +1,4 @@
+body { background: #f5f6fa; color-scheme: light; }
+.app-card { max-width: 460px; }
+p, h1, h2 { overflow-wrap: anywhere; }
+button:focus-visible, a:focus-visible { outline: 3px solid #875b00; outline-offset: 3px; }

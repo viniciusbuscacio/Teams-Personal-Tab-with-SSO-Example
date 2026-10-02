@@ -1,0 +1,5 @@
+{
+  "tenantId": "<DIRECTORY_TENANT_ID>",
+  "clientId": "<APPLICATION_CLIENT_ID>",
+  "origin": "https://tab.example.com"
+}

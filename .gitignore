@@ -1,0 +1,11 @@
+node_modules/
+dist/
+appPackage/
+sso-config.json
+teams-package.json
+.env
+.env.*
+!.env.example
+*.log
+*.zip
+coverage/
